@@ -92,19 +92,6 @@ dashboard_app
 
 
 
-## Selected users:
-- 92352
-- 126375
-- 132053
-- 132340
-- 132501
-
-Query used:
-```sql
-SELECT * FROM account
-WHERE id IN 
-(SELECT DISTINCT account_id FROM symptomreport WHERE date > '2023-10-23');
-```
 
 
 
