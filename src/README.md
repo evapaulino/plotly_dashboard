@@ -1,4 +1,4 @@
-# BesserEsser Plotly Dashboard
+# Plotly Dashboard
 
 
 ## This app has the following file structure
