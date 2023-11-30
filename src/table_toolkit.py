@@ -11,7 +11,7 @@ from io import StringIO
 from dash import html
 from dash.dash_table import DataTable
 
-from constants import DEBUG, MEALS_MAPPING
+from constants import DEBUG, MEALS_MAPPING, DISPLAYNAME
 
 
 
@@ -76,9 +76,8 @@ def make_diary_table(df_eating, df_symptomreport):
     DATE = 'date'
     TIME = 'time'
     DAYTIME = 'daytime'
-    ITEM = 'displayname'
     SYMPTOM = 'symptom'  # placeholder, for now: "-"
-    SEVERITY = 'severity'
+    IMPAIRMENT = 'impairment'
     TEMP = 'sorting'
     UNKNOWN = "Unbekannt"
     AFTER_GETTING_UP = "Nach dem Aufstehen"
@@ -93,10 +92,10 @@ def make_diary_table(df_eating, df_symptomreport):
 
     # try these functions to make the table pretty (ingredients list)
     func_to_aggregate_strings = ", ".join   # try: list, tuple, set, "\n".join , ", ".join  to push it into plotly-datatable and get beautiful repr
-    df_eating_agg = df_eating[[DATE, DAYTIME, ITEM]].groupby([DATE, DAYTIME]).agg(func_to_aggregate_strings).reset_index()   # ", ".join
+    df_eating_agg = df_eating[[DATE, DAYTIME, DISPLAYNAME]].groupby([DATE, DAYTIME]).agg(func_to_aggregate_strings).reset_index()   # ", ".join
 
     df_symptomreport[DAYTIME] = df_symptomreport[TIME].map(MAPPING)
-    df_symptomreport_agg = df_symptomreport[[DATE, DAYTIME, SYMPTOM, SEVERITY]].groupby([DATE, DAYTIME]).agg({SYMPTOM: ", ".join, SEVERITY: 'mean'}).reset_index()
+    df_symptomreport_agg = df_symptomreport[[DATE, DAYTIME, SYMPTOM, IMPAIRMENT]].groupby([DATE, DAYTIME]).agg({SYMPTOM: ", ".join, IMPAIRMENT: 'mean'}).reset_index()
 
     values_list = list(MAPPING.values()) + list(set(df_symptomreport_agg[DAYTIME].unique()).difference(set(MAPPING.values()))) # to be on the safe side
     
@@ -104,14 +103,14 @@ def make_diary_table(df_eating, df_symptomreport):
     df_diary[TEMP] = df_diary[DAYTIME].apply(lambda v: values_list.index(v))
     df_diary = df_diary.sort_values([DATE, TEMP]).drop(TEMP, axis=1)
 
-    df_diary = df_diary.reindex(columns=[DATE, DAYTIME, ITEM, SYMPTOM, SEVERITY])
+    df_diary = df_diary.reindex(columns=[DATE, DAYTIME, DISPLAYNAME, SYMPTOM, IMPAIRMENT])
 
     mapping = {k:v for k,v in 
                zip( MAPPING.values(), 
                     ([AFTER_GETTING_UP] + list(MEALS_MAPPING.values()) + [UNKNOWN]))}
 
     df_diary[DAYTIME] = df_diary[DAYTIME].map(mapping)
-    df_diary[SEVERITY] = df_diary[SEVERITY].apply(lambda v: str(round(v)) if not pd.isnull(v) else '')
+    df_diary[IMPAIRMENT] = df_diary[IMPAIRMENT].apply(lambda v: str(round(v)) if not pd.isnull(v) else '')
     df_diary.reset_index(inplace=True, drop=True)
     return df_diary
 
@@ -150,8 +149,8 @@ def make_probably_bad_foods_table(df):
     the ingredients in the resultant set are then ranked based on the
     number of days on which a given ingredient was eaten AND a symptom occurred.
 
-    TODO: consider the column containing the severity grade OR symptom_same_day 
-                                    (if no data on severity grade for that date)
+    TODO: consider the column containing the impairment grade OR symptom_same_day 
+                                    (if no data on impairment grade for that date)
 
     Returns:
         a pandas dataframe with one column
@@ -160,15 +159,15 @@ def make_probably_bad_foods_table(df):
     # Top n of "potentially bad" ingredients
     TOP_N = 5
     
-    set_true = set(df.loc[df['symptom_same_day']==True, 'displayname'])   # yes symptom on that day
-    set_false = set(df.loc[df['symptom_same_day']==False, 'displayname']) # no symptom on that day
+    set_true = set(df.loc[df['symptom_same_day']==True, DISPLAYNAME])   # yes symptom on that day
+    set_false = set(df.loc[df['symptom_same_day']==False, DISPLAYNAME]) # no symptom on that day
     set_potentially_bad = set_true.difference(set_false)
 
     # make a ranking
-    sr = (df[['displayname', 'symptom_same_day', 'symptom_next_day']]
-     .groupby('displayname').sum()
+    sr = (df[[DISPLAYNAME, 'symptom_same_day', 'symptom_next_day']]
+     .groupby(DISPLAYNAME).sum()
      .sort_values(['symptom_same_day', 'symptom_next_day'], ascending=[False, False])
-     .sum(axis=1).replace({0:None}).dropna().reset_index()['displayname'])
+     .sum(axis=1).replace({0:None}).dropna().reset_index()[DISPLAYNAME])
     
     ranking = {ingredient: rank for rank, ingredient in sr.items()}
 

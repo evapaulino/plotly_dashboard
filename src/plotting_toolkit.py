@@ -14,6 +14,7 @@ from math import log
 from computations import compute_combination_occurrence, get_dates_range, compute_n_rows_n_cols
 from constants import DEBUG, ERR_PREFIX, MEALS_MAPPING, TEXT_UNIT_3, A, B, C, D, E
 from constants import WEBPAGE_BACKGROUND_COLOR, GRAPH_MARGINS_COLOR, GRAPH_PLOTTING_AREA_COLOR
+from constants import DISPLAYNAME  # regex'ed 'displayname' or the original column
 
 
 # Define the style and colors (optional)
@@ -227,12 +228,12 @@ def make_figure_3(df_eating, df_symptoms, debugging_info=None):
     for i, daytime, mahlzeit, color in zip(range(3, 0, -1), 
                                             *zip(*list(MEALS_MAPPING.items())), 
                                             COLORS):
-        df_temp = df_eating.loc[df_eating['daytime'] == daytime, ['date',  'displayname']].groupby('date').agg(list).sort_index()
-        df_temp['displayname'] = df_temp['displayname'].apply(", ".join)
+        df_temp = df_eating.loc[df_eating['daytime'] == daytime, ['date',  DISPLAYNAME]].groupby('date').agg(list).sort_index()
+        df_temp[DISPLAYNAME] = df_temp[DISPLAYNAME].apply(", ".join)
         df_temp['bar_height'] = i - 0.5   
         trace = go.Scatter(x=df_temp.index, y=df_temp['bar_height'], 
                            mode='markers', name=mahlzeit,
-                           text=df_temp['displayname'], hoverinfo='text',  #'x+y+text'
+                           text=df_temp[DISPLAYNAME], hoverinfo='text',  #'x+y+text'
                            marker=go.scatter.Marker(color=color, 
                                                     opacity=0.6, size=marker_size ))   #size=marker_size  
         traces.append(trace)
@@ -253,19 +254,16 @@ def make_figure_4(df, color=None, debugging_info=None):
     """
     Welche Lebensmittel sind am meisten konsumiert
     """
-
-    ITEMS_COLUMN_NAME = 'displayname' # comes from the SQL database
-    VALUES_COLUMN_NAME = 'count'      # generic name by pandas value_counts()
     TOP_N = 10
 
     # no data -> no plot
     if df is None or len(df)==0:
         return no_data_available()
     
-    df = df['displayname'].value_counts().head(TOP_N).to_frame().reset_index()
+    df = df[DISPLAYNAME].value_counts().head(TOP_N).to_frame().reset_index()
 
-    fig = make_tiles_plot(items=df[ITEMS_COLUMN_NAME], 
-                          values=df[VALUES_COLUMN_NAME],
+    fig = make_tiles_plot(items=df[DISPLAYNAME], 
+                          values=df['count'],  # generic name by pandas value_counts()
                           color=color)
     fig.update_layout(title=get_figure_title(debugging_info))
     return fig
@@ -276,16 +274,13 @@ def make_figure_5(df, color=None, debugging_info=None):
     """
     Welche Lebensmittel wurden unmittelbar vor der Symptomentstehung gegessen
     """
-
-    ITEMS_COLUMN_NAME = 'displayname' # comes from the SQL database
-    VALUES_COLUMN_NAME = 'count'      # generic name by pandas value_counts() - not needed here
     TOP_N = 10
 
     # no data -> no plot
     if df is None or len(df)==0:
         return no_data_available()
 
-    sr = df[ITEMS_COLUMN_NAME].value_counts().head(TOP_N)
+    sr = df[DISPLAYNAME].value_counts().head(TOP_N)
 
     # just in case
     if sr is None or len(sr)==0:
@@ -308,7 +303,7 @@ def make_figure_6(df, color=None, debugging_info=None):
     if df is None or len(df)==0:
         return no_data_available()
 
-    arr = df[['date', 'daytime', 'displayname']].groupby(['date','daytime']).agg(list).values.ravel()
+    arr = df[['date', 'daytime', DISPLAYNAME]].groupby(['date','daytime']).agg(list).values.ravel()
     sets = [frozenset(e) for e in arr]
     list_of_lists = [sorted(array)      # array = a set representing a meal
                      for array,count in 
@@ -339,7 +334,7 @@ def make_figure_7(df, n_components, color=None, debugging_info=None):
     if df is None or len(df)==0:
         return no_data_available()
 
-    df_aggregated = df[['date', 'daytime', 'displayname']].groupby(['date','daytime']).agg(tuple)
+    df_aggregated = df[['date', 'daytime', DISPLAYNAME]].groupby(['date','daytime']).agg(tuple)
     meals = [frozenset(tuple(e[0])) for e in df_aggregated.values.tolist()]
     
     counter = compute_combination_occurrence(meals, cardinality=n_components)

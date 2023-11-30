@@ -27,6 +27,9 @@ ACCOUNT_TABLE = "account"        # example
 INGREDIENT_ID = "ingredient_id"  # not used at the moment
 ...
 
+# Use the original "displayname" column or the regex'ed "displayname_regex" ?
+DISPLAYNAME = 'displayname_regex'  #or 'displayname'
+
 # Path to the banner image
 BANNER_PATH = "assets/banner.png"
 
@@ -81,7 +84,6 @@ C = 'C'   # e.g. for LUNCH
 D = 'D'   # e.g. for DINNER
 E = 'E'   # extend when needed
 ...
-
 
 # plotly dash component classes (for type comparison)
 DASH_COMPONENTS_CLASSES = (dcc.Dropdown, dcc.RadioItems, dcc.Slider,

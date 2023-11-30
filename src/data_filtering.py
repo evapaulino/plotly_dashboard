@@ -25,7 +25,7 @@ def subset_data_by_dates(df, start_date, end_date):
 
 def subset_data_by_selector_values(df, meals_selector=None, 
                                        symptom_selector=None,
-                                       severity_selector=None):
+                                       impairment_selector=None):
     """
     TODO: docs
 
@@ -36,12 +36,12 @@ def subset_data_by_selector_values(df, meals_selector=None,
     # Assert just in case
     assert meals_selector in (None, A,B,C,D), f"{ERR_PREFIX}bad meals_selector: {meals_selector}"
     assert symptom_selector in (None,A,B,C,D), f"{ERR_PREFIX}bad symptom_selector: {symptom_selector}"
-    assert severity_selector in (None, *range(11)), f"{ERR_PREFIX}bad severity_selector: {severity_selector}"
+    assert impairment_selector in (None, *range(11)), f"{ERR_PREFIX}bad impairment_selector: {impairment_selector}"
 
     # Make default boolean mask (filled with all True's)
     mask_meals  = Series([True]*len(df), index=df.index)
     mask_symptoms = Series([True]*len(df), index=df.index)
-    mask_severity = Series([True]*len(df), index=df.index)
+    mask_impairment = Series([True]*len(df), index=df.index)
     ... # add more as you add more selectors
 
     # CASE: boolean mask for daytime (Mahlzeiten): selector1
@@ -64,19 +64,19 @@ def subset_data_by_selector_values(df, meals_selector=None,
                                     C: all_values[1:2]}[symptom_selector] # will raise error if not in
             mask_symptoms = df['symptom_same_day'].isin(symptom_values_list)
     
-    # CASE: selector is the severity slider
-    if severity_selector:
-        if type(severity_selector) is int and 1 <= severity_selector <= 10:
-            COL = 'avg_severity'
-            mask_severity = df[COL] >= severity_selector
-        elif severity_selector in (A,B,C):  # case: severity_selector is a dropdown-menu (future)
-            mask_severity = ...  #extend the functionality as necessary
+    # CASE: selector is the impairment slider
+    if impairment_selector:
+        if type(impairment_selector) is int and 1 <= impairment_selector <= 10:
+            COL = 'avg_impairment'
+            mask_impairment = df[COL] >= impairment_selector
+        elif impairment_selector in (A,B,C):  # case: impairment_selector is a dropdown-menu (future)
+            mask_impairment = ...  #extend the functionality as necessary
 
     # Encapsulate all the masks into one iterable object (array)
     masks = [
         mask_meals,
         mask_symptoms,
-        mask_severity,
+        mask_impairment,
         # append more as you add more selectors / as necessary
         ]
     

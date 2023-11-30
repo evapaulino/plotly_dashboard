@@ -16,14 +16,13 @@ from dash.exceptions import PreventUpdate
 #import dash_bootstrap_components as dbc
 
 from units import css, header, unit_0, unit_1, unit_2, unit_3, unit_4, unit_5, unit_6, unit_7, unit_8, footer
-from data_processing import check_account, get_dataframes
+from data_access import check_account
+from data_processing import get_dataframes
 from data_filtering import subset_data_by_dates, subset_data_by_selector_values
 from table_toolkit import read_json, to_json, to_list_of_dicts
 from table_toolkit import make_statistics_table, make_diary_table, prettify_diary_table, make_probably_bad_foods_table
 from developer_toolkit import get_callback_args, get_default_values, make_handy_namespace
 from computations import get_dates_range
-from plotting_toolkit import (make_figure_3, make_figure_4, make_figure_5, make_figure_6, 
-                                make_figure_7, make_figure_test)
 from plotting_toolkit import make_figure
 
 from constants import DEBUG, ERR_PREFIX, ACCOUNT, A, B, C, D, E  # values of selectors for reference
@@ -423,7 +422,7 @@ def update_unit_5(*components):
     # Subset by the two selectors on this unit
     df_subset_dates_and_selectors = subset_data_by_selector_values(df_subset_dates,
                                                                    meals_selector=components.selector1,
-                                                                   severity_selector=components.selector2)
+                                                                   impairment_selector=components.selector2)
     # Make the plot
     fig = make_figure(unit, df_subset_dates_and_selectors,
                             color='red',                     # all red
